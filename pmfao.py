@@ -23,7 +23,6 @@ Fluxo de calor do solo (G) para o período de 1 dia ou 10 dias = 0
 import pandas as pd
 import math
 import numpy as np
-from datetime import datetime
 
 def Pressao_atm(altitude):
     """
