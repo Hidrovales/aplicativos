@@ -23,6 +23,23 @@ Fluxo de calor do solo (G) para o período de 1 dia ou 10 dias = 0
 import pandas as pd
 import math
 import numpy as np
+import datetime
+
+def calcula_dia(data):
+    """
+      Calcula dia do ano e acrescenta na base de dados
+      :param dataset: base de dados completa
+      :return: base de dados + coluna com o dia do ano
+    """
+    day_of_year = []
+    date = pd.to_datetime(data).strftime('%Y-%m-%d')
+    adate = datetime.datetime.strptime(date,"%Y-%m-%d")
+    day_of_year.append(adate.timetuple().tm_yday)
+    day = np.asarray(day_of_year)
+    #dayframe=pd.DataFrame(day,columns=['J'])
+    #d = [dataset,dayframe]
+    #dataset = pd.concat(d,axis=1)
+    return day
 
 def Pressao_atm(altitude):
     """
@@ -206,7 +223,7 @@ def fao56_penman_monteith(rn, t, u2, es, ea, delta, gamma, G):
     a2 =  a1 / (delta + (gamma * (1 + 0.34 * u2)))
     return a2
     
-def gera_serie(dataset):
+def gera_serie(dataset,altitude,latitude,Gsc,sigma):
     #serie_ eto = []
     #for i in range(len(dataset)):
     es = Es_medio(dataset.Tmin[0],dataset.Tmax[0]) #------------> Pressão do vapor de saturação
@@ -217,12 +234,12 @@ def gera_serie(dataset):
     declinacao_sol = Declinacao_sol(dataset.Dia[0]) #----> Declinação solar
     omega = Omega(latitude, declinacao_sol) #-------> Ângulo horário pôr-do-sol
     dr = Dr(dataset.Dia[0]) #----------------------------> Inverso da distância relativa da terra-sol
-    ra = Ra(latitude, declinacao_sol, omega, dr) #--> Radiação extraterrestre para períodos diários
+    ra = Ra(latitude, declinacao_sol, omega, dr,Gsc) #--> Radiação extraterrestre para períodos diários
     N = N_insolacao(omega) #------------------------> Duração máxima de insolação no dia
     rs = Rs(N, dataset.I[0], ra, dataset.Tmax[0], dataset.Tmin[0]) #---------------------> Radiação solar
     rso = Rso(altitude, ra) #-----------------------> Radiação solar de céu claro
     rns = Rns(rs, albedo=0.23) #--------------------> Radiação de onda curta líquida
-    rnl = Rnl(dataset.Tmin[0],dataset.Tmax[0], rs, rso, ea) #---> Radiação de onda longa líquida
+    rnl = Rnl(dataset.Tmin[0],dataset.Tmax[0], rs, rso, ea, sigma) #---> Radiação de onda longa líquida
     rn = Rn(rns,rnl) #------------------------------> Radiação líquida
-    serie_eto = fao56_penman_monteith(rn, dataset.Tmedia[0], dataset.V[0], es, ea, delta, gamma, G) #---> Evapotranspiração
+    serie_eto = fao56_penman_monteith(rn, dataset.Tmedia[0], dataset.V[0], es, ea, delta, gamma, 0) #---> Evapotranspiração
     return serie_eto
