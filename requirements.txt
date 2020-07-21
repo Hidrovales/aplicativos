@@ -1,4 +1,4 @@
-streamlit==0.61.0
-pandas==0.25.3
-numpy==1.18.1
+streamlit==0.63.1
+pandas==0.22.0
+numpy==1.14.0
 math==2018.0.1
